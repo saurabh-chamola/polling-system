@@ -1,20 +1,47 @@
-import pkg from "pg";
-const { Client } = pkg;
+import { Sequelize } from 'sequelize';
+import UserModel from '../models/user.js';
+import PollModel from '../models/poll.js';
+import PollOptionModel from '../models/pollOption.js';
+import VoteModel from '../models/vote.js';
 
-const dbConnect = async () => {
+// Initialize Sequelize connection
+export const sequelize = new Sequelize({
+    host: "localhost",
+    dialect: "postgres",
+    username: "postgres",
+    password: "9410987248",
+    database: "pollingSystem"
+});
+
+// Initialize Models
+const User = UserModel(sequelize, Sequelize.DataTypes);
+const Poll = PollModel(sequelize, Sequelize.DataTypes);
+const PollOption = PollOptionModel(sequelize, Sequelize.DataTypes);
+const Vote = VoteModel(sequelize, Sequelize.DataTypes);
+
+// Define Associations
+// Poll.hasMany(PollOption, { foreignKey: 'pollId', onDelete: 'CASCADE' });
+// PollOption.belongsTo(Poll, { foreignKey: 'pollId' });
+
+
+// User.hasMany(Vote, { foreignKey: 'votedBy' });
+// Vote.belongsTo(User, { foreignKey: 'votedBy' });
+
+// PollOption.hasMany(Vote, { foreignKey: 'option' });
+// Vote.belongsTo(PollOption, { foreignKey: 'option' });
+
+// Connect to the database 
+const connectDb = async () => {
     try {
-        const client = new Client({
-            user: "postgres",          // Changed 'username' to 'user'
-            port: 5432,
-            password: "9410987248",
-            host: "localhost",
-            database: "pollingSystem"
-        });
-        await client.connect();
-        console.log("Connected to database successfully!!");
+        await sequelize.authenticate();
+        console.log("Connected to database successfully!");
+        await sequelize.sync(); 
+        console.log("Database synchronized with all models and associations!");
     } catch (e) {
-        console.log(`Database connection failed!! - ${e?.message}`);
+        console.error("Database connection failed:", e);
     }
 };
 
-export default dbConnect;
+connectDb();
+
+export default sequelize;
