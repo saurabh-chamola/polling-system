@@ -1,10 +1,11 @@
+// vote.js
 export default (sequelize, DataTypes) => {
     return sequelize.define("Vote", {
         votedBy: { 
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: "User",  
+                model: "user",   // updated to match lowercase table name
                 key: "id"
             },
             onDelete: "CASCADE"
@@ -13,7 +14,7 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: "PollOption",  
+                model: "pollOption",  // updated to match lowercase table name
                 key: "id"
             },
             onDelete: "CASCADE"

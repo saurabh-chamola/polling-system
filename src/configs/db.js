@@ -31,7 +31,10 @@ const connectDb = async () => {
     try {
         await sequelize.authenticate();
         console.log("Connected to database successfully!");
-        await sequelize.sync();
+        await User.sync()
+        await Poll.sync();
+        await PollOption.sync();
+        await Vote.sync();
         console.log("Database synchronized with all models and associations!");
     } catch (e) {
         console.error("Database connection failed:", e);

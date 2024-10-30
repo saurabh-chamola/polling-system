@@ -9,22 +9,29 @@ const kafka = new Kafka({
 async function init() {
   const admin = kafka.admin();
   console.log("Admin connecting...");
-  await admin.connect(); // Don't forget to await here
+  await admin.connect();
   console.log("Admin Connection Success...");
 
-  console.log("Creating Topic polls");
-  await admin.createTopics({
-    topics: [
-      {
-        topic: "polls",
-        numPartitions: 1,
-      },
-    ],
-  });
-  console.log("Topic Created Success [polls]");
+  const topicName = "polls";
 
-  console.log("Disconnecting Admin..");
+  // Check if the topic already exists
+  const existingTopics = await admin.listTopics();
+  if (!existingTopics.includes(topicName)) {
+    try {
+      console.log(`Creating Topic ${topicName}`);
+      await admin.createTopics({
+        topics: [{ topic: topicName, numPartitions: 1 }],
+      });
+      console.log(`Topic Created Successfully [${topicName}]`);
+    } catch (error) {
+      console.error("Failed to create topic:", error);
+    }
+  } else {
+    console.log(`Topic ${topicName} already exists, skipping creation.`);
+  }
+
+  console.log("Disconnecting Admin...");
   await admin.disconnect();
 }
 
-init().catch(err => console.error("Error in init:", err));
+init().catch((err) => console.error("Error in init:", err));

@@ -5,7 +5,7 @@ export default (sequelize, DataTypes) => {
             allowNull: false,
         },
     }, {
-        tableName: "users",
+        tableName: "user",
         timestamps: true, // Enable automatic timestamp handling
     });
 };

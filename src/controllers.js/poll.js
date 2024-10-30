@@ -29,11 +29,31 @@ export const pollVote = async (req, res) => {
         const { option, votedBy } = req?.body
         await Vote.create({ pollId: req?.params?.id, option, votedBy })
         await PollOption.increment(
-            { count: 1 }, // Increment the count by 1
-            { where: { id: option } } // Specify the condition
+            { count: 1 },
+            { where: { id: option } }
         );
 
         res.status(201).json({ status: true, message: "Voted successfully!!" })
+    }
+    catch (e) {
+        res.status(400).json({ status: false, message: e?.message ?? "Something went wrong !! please try again later!!" })
+    }
+}
+
+
+export const leaderboard = async (req, res) => {
+    try {
+        const pollsWithOptions = await Poll.findAll({
+            include: [
+                {
+                    model: PollOption,
+                    attributes: ['id', 'option', 'count'],
+                    order: [['count', 'DESC']], // Order options by count in descending order
+                }
+            ],
+            attributes: ['id', 'poll'], // Poll attributes to include
+        });
+        res.status(200).json({status:true,pollsWithOptions})
     }
     catch (e) {
         res.status(400).json({ status: false, message: e?.message ?? "Something went wrong !! please try again later!!" })
