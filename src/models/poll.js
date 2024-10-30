@@ -1,12 +1,12 @@
 export default (sequelize, DataTypes) => {
-    sequelize.define("poll", {
-        question: {
+    return sequelize.define("poll", {
+        poll: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
         }
     }, {
-        tableName: "polls"
+        tableName: "poll"
     }
     )
 }

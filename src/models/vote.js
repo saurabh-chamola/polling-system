@@ -1,12 +1,22 @@
 export default (sequelize, DataTypes) => {
     return sequelize.define("Vote", {
-        votedBy: {
+        votedBy: { 
             type: DataTypes.INTEGER,
             allowNull: false,
+            references: {
+                model: "User",  
+                key: "id"
+            },
+            onDelete: "CASCADE"
         },
-        option: {
+        option: { 
             type: DataTypes.INTEGER,
             allowNull: false,
+            references: {
+                model: "PollOption",  
+                key: "id"
+            },
+            onDelete: "CASCADE"
         },
     }, {
         tableName: "votes",
