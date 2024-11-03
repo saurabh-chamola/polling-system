@@ -1,30 +1,55 @@
 import { Kafka } from "kafkajs";
+import { PollOption, Vote } from "./db.js";
 
-const kafka = new Kafka({
+export const kafka = new Kafka({
   clientId: "my-app",
   brokers: ["13.202.251.176:9092"],
-  connectionTimeout: 30000, // 30 seconds timeout
+  connectionTimeout: 30000,
 });
 
-async function init() {
+// section for initialization Kafka topics
+export async function init() {
   const admin = kafka.admin();
-  console.log("Admin connecting...");
-  await admin.connect(); // Don't forget to await here
-  console.log("Admin Connection Success...");
+  await admin.connect();
+  console.log("Admin Connected successfully...");
 
-  console.log("Creating Topic polls");
-  await admin.createTopics({
-    topics: [
-      {
-        topic: "polls",
-        numPartitions: 1,
-      },
-    ],
-  });
-  console.log("Topic Created Success [polls]");
+  const topicName = "polls";
 
-  console.log("Disconnecting Admin..");
-  await admin.disconnect();
+  try {
+    const existingTopics = await admin.listTopics();
+    if (!existingTopics.includes(topicName)) {
+      console.log(`Creating Topic ${topicName}`);
+      await admin.createTopics({
+        topics: [{ topic: topicName, numPartitions: 1 }],
+      });
+      console.log(`Topic Created Success [${topicName}]`);
+    } else {
+      console.log(`Topic [${topicName}] already exists, stopped creation.`);
+    }
+  } catch (err) {
+    console.error("Error creating topic:", err);
+  } finally {
+    console.log("Disconnecting Admin..");
+    await admin.disconnect();
+  }
 }
 
-init().catch(err => console.error("Error in init:", err));
+// run consumer
+export const runConsumer = async () => {
+  const consumer = kafka.consumer({ groupId: "vote-group" });
+  await consumer.connect();
+  await consumer.subscribe({ topic: "polls", fromBeginning: true });
+
+  await consumer.run({
+    eachMessage: async ({ message }) => {
+      const voteData = JSON.parse(message.value.toString());
+      const { pollId, option, votedBy } = voteData;
+
+      // Store the vote in the database
+      await Vote.create({ pollId, option, votedBy });
+      await PollOption.increment({ count: 1 }, { where: { id: option } });
+
+      console.log(`created vote for poll ${pollId} from ${votedBy}`);
+    },
+  });
+};

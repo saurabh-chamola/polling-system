@@ -1,21 +1,23 @@
 export default (sequelize, DataTypes) => {
-    return sequelize.define("PollOption", {
-        pollId: { 
+    return sequelize.define("Option", {
+        pollId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: "poll",  // This should match your Poll model's table name
+                model: "polls",
                 key: "id"
             },
             onDelete: "CASCADE"
-        }
-,
+        },
+        count: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
         option: {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        
     }, {
-        tableName: "pollOptions",
+        tableName: "option",
     });
 };

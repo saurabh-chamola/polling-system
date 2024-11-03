@@ -1,6 +1,4 @@
-// database.js
 import { Sequelize } from 'sequelize';
-import userModel from "../models/user.js"
 import pollModel from '../models/poll.js';
 import optionModel from '../models/pollOption.js';
 import voteModel from '../models/vote.js';
@@ -11,28 +9,24 @@ const sequelize = new Sequelize("pollingSystem", "postgres", "9410987248", {
 });
 
 // Initialize Models
-export const User = userModel(sequelize, Sequelize.DataTypes);
 export const Poll = pollModel(sequelize, Sequelize.DataTypes);
 export const PollOption = optionModel(sequelize, Sequelize.DataTypes);
 export const Vote = voteModel(sequelize, Sequelize.DataTypes);
 
 // Define Associations
-Poll.hasMany(PollOption, { foreignKey: 'pollId', onDelete: 'CASCADE' });
+Poll.hasMany(PollOption, { foreignKey: 'pollId', as: 'Options', onDelete: 'CASCADE' });
 PollOption.belongsTo(Poll, { foreignKey: 'pollId' });
 
-User.hasMany(Vote, { foreignKey: 'votedBy' });
-Vote.belongsTo(User, { foreignKey: 'votedBy' });
 
-PollOption.hasMany(Vote, { foreignKey: 'option' });
+PollOption.hasMany(Vote, { foreignKey: 'option', onDelete: 'CASCADE' });
 Vote.belongsTo(PollOption, { foreignKey: 'option' });
 
 // Connect to the database
 const connectDb = async () => {
     try {
         await sequelize.authenticate();
-        console.log("Connected to database successfully!");
         await sequelize.sync();
-        console.log("Database synchronized with all models and associations!");
+        console.log("Connected to database successfully!");
     } catch (e) {
         console.error("Database connection failed:", e);
     }
@@ -40,4 +34,4 @@ const connectDb = async () => {
 
 connectDb();
 
-export default sequelize
+export default sequelize;
