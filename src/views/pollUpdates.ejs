@@ -53,27 +53,25 @@
 </head>
 
 <body>
-    <div id="welcome">Welcome to the Polling System!!!!!! (Whenever a user votes in any poll, real-time notifications will be displayed here. We can also monitor the live vote counts for any poll. Additionally, you can view the leaderboard )</div>
+    <div id="welcome">Welcome to the Polling System! (Whenever a user votes in any poll, real-time notifications will be displayed here. We can also monitor the live vote counts for any poll. Additionally, you can view the leaderboard.)</div>
 
+    <h2>VOTE/POLL NOTIFICATION</h2>
     <div id="notification"></div>
 
     <div id="polls-container">
         <h2>Poll Questions</h2>
-        <% data?.forEach(poll=> { %>
+        <% data?.forEach(poll => { %>
             <div class="poll">
-                <div id="poll-question">Question (ID: <%= poll?.id %>): <%= poll?.poll %>
-                </div>
+                <div id="poll-question">Question (ID: <%= poll?.id %>): <%= poll?.poll %></div>
                 <div id="poll-options">
-                    <% poll?.Options.forEach(option=> { %>
+                    <% poll?.Options.forEach(option => { %>
                         <div class="poll-option" id="option-<%= option.id %>">
-                            <%= option?.option %>: <span id="count-<%= option.id %>">
-                                    <%= option.count %>
-                                </span> votes
+                            <%= option?.option %>: <span id="count-<%= option.id %>"><%= option.count %></span> votes
                         </div>
-                        <% }) %>
+                    <% }) %>
                 </div>
             </div>
-            <% }) %>
+        <% }) %>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -81,15 +79,14 @@
         const socket = io();
 
         socket.on('notification', (data) => {
-            console.log('Received notification:', data); // Log the notification data
             const notificationDiv = document.getElementById('notification');
             notificationDiv.innerHTML += `<p>${data.message}</p>`;
 
-            // Update vote counts in real-time
+            // Update vote counts for each option
             data.pollOptions.forEach(option => {
                 const countSpan = document.getElementById(`count-${option.id}`);
                 if (countSpan) {
-                    countSpan.innerText = option.count;
+                    countSpan.innerText = option.count; // Update the count displayed
                 }
             });
         });

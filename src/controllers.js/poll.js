@@ -1,6 +1,7 @@
 import { Poll, PollOption, Vote } from "../configs/db.js";
 import { io } from "../../server.js";
 import { kafka } from "../configs/kafka.js";
+import pollOption from "../models/pollOption.js";
 
 /**
  * Route: POST /api/v1/poll
@@ -10,6 +11,9 @@ import { kafka } from "../configs/kafka.js";
 export const createPoll = async (req, res) => {
     try {
         const { poll, option } = req.body;
+        if (!poll || !option) {
+            return res.status(400).json({ status: "poll question and options are required!!" })
+        }
 
         const savedPollData = await Poll.create({ poll });
 
@@ -64,6 +68,13 @@ export const getPollDetails = async (req, res) => {
 export const pollVote = async (req, res) => {
     try {
         const { option, votedBy } = req.body;
+        if (!option || !votedBy) {
+            return res.status(400).json({ status: false, message: "Option id and votedBy is required" })
+        }
+
+        if (!req?.params?.id) {
+            return res.status(400).json({ status: false, message: "poll id you want to vote is required!!" })
+        }
 
         // Create a producer for Kafka
         const producer = kafka.producer();
@@ -83,12 +94,17 @@ export const pollVote = async (req, res) => {
 
         await producer.disconnect();
 
-        // Respond to the client immediately
+
+        
+
+
         res.status(201).json({ status: true, message: "Vote sent successfully!" });
     } catch (e) {
         res.status(400).json({ status: false, message: e.message || "Something went wrong! Please try again later!" });
     }
 };
+
+
 
 
 /**
@@ -109,7 +125,11 @@ export const leaderboard = async (req, res) => {
         });
 
         const sortedPolls = polls.map(poll => {
-            return poll.Options.sort((a, b) => b.count - a.count);
+            const sortedOptions = poll.Options.sort((a, b) => b.count - a.count);
+            return {
+                question: poll.poll, 
+                options: sortedOptions,
+            };
         });
 
         res.status(200).json({ status: true, data: sortedPolls });
@@ -117,6 +137,7 @@ export const leaderboard = async (req, res) => {
         res.status(400).json({ status: false, message: e?.message ?? "Something went wrong !! please try again later!!" });
     }
 };
+
 
 /**
  * Route: GET /api/polls/realtimeUpdate

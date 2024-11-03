@@ -1,4 +1,5 @@
 import { Kafka } from "kafkajs";
+import { io } from "../../server.js";
 import { PollOption, Vote } from "./db.js";
 
 export const kafka = new Kafka({
@@ -44,10 +45,21 @@ export const runConsumer = async () => {
     eachMessage: async ({ message }) => {
       const voteData = JSON.parse(message.value.toString());
       const { pollId, option, votedBy } = voteData;
-
+     
+      
       // Store the vote in the database
       await Vote.create({ pollId, option, votedBy });
       await PollOption.increment({ count: 1 }, { where: { id: option } });
+      const dataOption = await PollOption.findAll({
+        where: { pollId },
+        raw: true
+      });
+      // console.log(dataOption)
+
+      io.emit("notification", {
+        message: `${votedBy} has just voted for the poll with ID: ${pollId}`,
+        pollOptions: dataOption
+      });
 
       console.log(`created vote for poll ${pollId} from ${votedBy}`);
     },
