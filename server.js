@@ -50,6 +50,8 @@ app.use(express.json());
 app.use("/api/v1/poll", pollRoutes);
 
 
+
+
 // Start the server after setting up Socket.IO
 server.listen(PORT, async () => {
   await init()
